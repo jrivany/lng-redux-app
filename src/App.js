@@ -1,32 +1,41 @@
-import { Lightning, Utils } from '@lightningjs/sdk'
+import Lightning from '@lightningjs/core'
+import { configureStore, createSlice } from '@reduxjs/toolkit'
 
-export default class App extends Lightning.Component {
-  static getFonts() {
-    return [{ family: 'Regular', url: Utils.asset('fonts/Roboto-Regular.ttf') }]
-  }
+const counterSlice = createSlice({
+  name: 'count',
+  initialState: {
+    value: 0,
+  },
+  reducers: {
+    increment: state => {
+      state.value += 1
+    },
+  },
+})
 
+const appStore = configureStore({
+  reducer: {
+    count: counterSlice.reducer,
+  },
+})
+
+export default class App extends Lightning.Application {
   static _template() {
     return {
-      Background: {
+      AppBackground: {
+        x: 0,
+        y: 0,
         w: 1920,
         h: 1080,
-        color: 0xfffbb03b,
-        src: Utils.asset('images/background.png'),
-      },
-      Logo: {
-        mountX: 0.5,
-        mountY: 1,
-        x: 960,
-        y: 600,
-        src: Utils.asset('images/logo.png'),
+        rect: true,
+        color: 0xff000000,
       },
       Text: {
         mount: 0.5,
         x: 960,
         y: 720,
         text: {
-          text: "Let's start Building!",
-          fontFace: 'Regular',
+          text: this.bindProp('count', props => `Count: ${props.count.value}`),
           fontSize: 64,
           textColor: 0xbbffffff,
         },
@@ -35,18 +44,7 @@ export default class App extends Lightning.Component {
   }
 
   _init() {
-    this.tag('Background')
-      .animation({
-        duration: 15,
-        repeat: -1,
-        actions: [
-          {
-            t: '',
-            p: 'color',
-            v: { 0: { v: 0xfffbb03b }, 0.5: { v: 0xfff46730 }, 0.8: { v: 0xfffbb03b } },
-          },
-        ],
-      })
-      .start()
+    appStore.subscribe(() => this.patch(appStore.getState()))
+    setInterval(() => appStore.dispatch(counterSlice.actions.increment()), 100)
   }
 }
