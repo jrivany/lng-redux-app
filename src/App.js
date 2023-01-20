@@ -45,6 +45,5 @@ export default class App extends Lightning.Application {
 
   _init() {
     appStore.subscribe(() => this.patch(appStore.getState()))
-    setInterval(() => appStore.dispatch(counterSlice.actions.increment()), 100)
   }
 }
